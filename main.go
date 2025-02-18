@@ -10,7 +10,7 @@ import (
 	"regexp"
 	"sort"
 	"strconv"
-    "strings"
+	"strings"
 	"sync"
 	"time"
 
@@ -27,6 +27,7 @@ import (
 
 var (
 	showVersion     = flag.Bool("version", false, "Print version information.")
+	logLevel		= flag.String("loglevel", "info", "Set log level (debug, info, warn, error, fatal, panic)")
 	netflowAddress  = flag.String("netflow.listen-address", ":2055", "Network address on which to accept netflow binary network packets, e.g. \":2055\".")
 	listenAddress   = flag.String("web.listen-address", ":9191", "Address on which to expose metrics.")
 	metricsPath     = flag.String("web.telemetry-path", "/metrics", "Path under which to expose Prometheus metrics.")
@@ -121,10 +122,10 @@ func (c *netflowCollector) processReader(udpSock *net.UDPConn) {
 					counts := make(map[string]float64)
 					for _, field := range record.Fields {
 						if len(*netflowExclude) > 0 && regexp.MustCompile(*netflowExclude).MatchString(field.Translated.Name) {
-							//log.Infoln(field,"is not using label")
+							//log.Warnln(field,"is not using label")
 						} else if regexp.MustCompile(*netflowCollects).MatchString(field.Translated.Name) {
 							counts[field.Translated.Name] = float64(field.Translated.Value.(uint64))
-							//log.Infoln(field,"is using metric")
+							//log.Warnln(field,"is using metric")
 						} else {
 							labels[field.Translated.Name] = fmt.Sprintf("%v", field.Translated.Value)
 						}
@@ -216,7 +217,7 @@ func (c *netflowCollector) Collect(ch chan<- prometheus.Metric) {
 				desc = fmt.Sprintf("netflow_%s_%s", sample.Labels["From"], key)
 			}
             desc = strings.Replace(desc,".","",-1)
-            log.Infoln(desc)
+            // log.Infoln(desc)
 			ch <- MustNewTimeConstMetric(
 				prometheus.NewDesc(desc,
 					fmt.Sprintf("netflow metric %s", key),
@@ -263,6 +264,8 @@ func main() {
 		fmt.Fprintln(os.Stdout, version.Print("netflow_exporter"))
 		os.Exit(0)
 	}
+
+	log.Base().SetLevel(*logLevel)
 
 	log.Infoln("Starting netflow_exporter", version.Info())
 	log.Infoln("Build context", version.BuildContext())
