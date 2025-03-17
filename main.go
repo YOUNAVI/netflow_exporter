@@ -89,21 +89,17 @@ func (c *netflowCollector) processReader(udpSock *net.UDPConn) {
 			for _, record := range p.Records {
 				labels := prometheus.Labels{}
 				counts := make(map[string]float64)
-				labels["sourceIPv4Address"] = record.SrcAddr.String()
-				labels["destinationIPv4Address"] = record.DstAddr.String()
-				labels["sourceTransportPort"] = strconv.FormatUint(uint64(record.SrcPort), 10)
-				labels["destinationTransportPort"] = strconv.FormatUint(uint64(record.DstPort), 10)
-				counts["packetDeltaCount"] = float64(record.Packets)
-				counts["octetDeltaCount"] = float64(record.Bytes)
+				labels["srcIP"] = record.SrcAddr.String()
+				labels["dstIP"] = record.DstAddr.String()
+				labels["srcPort"] = strconv.FormatUint(uint64(record.SrcPort), 10)
+				labels["dstPort"] = strconv.FormatUint(uint64(record.DstPort), 10)
+				counts["packetsCount"] = float64(record.Packets)
+				counts["bytesCount"] = float64(record.Bytes)
 				labels["protocolIdentifier"] = strconv.FormatUint(uint64(record.Protocol), 10)
 				labels["tcpControlBits"] = strconv.FormatUint(uint64(record.TCPFlags), 10)
-				labels["bgpSourceAsNumber"] = strconv.FormatUint(uint64(record.SrcAS), 10)
-				labels["bgpDestinationAsNumber"] = strconv.FormatUint(uint64(record.DstAS), 10)
-				labels["sourceIPv4PrefixLength"] = strconv.FormatUint(uint64(record.SrcMask), 10)
-				labels["destinationIPv4PrefixLength"] = strconv.FormatUint(uint64(record.DstMask), 10)
+				labels["ipToS"] = strconv.FormatUint(uint64(record.ToS), 10)
 				if (len(counts) > 0) && (len(labels) > 0) {
-					labels["From"] = srcAddress.IP.String()
-					labels["NetflowVersion"] = "5"
+					labels["agent"] = srcAddress.IP.String()
 
 					sample := &netflowSample{
 						Labels:      labels,
