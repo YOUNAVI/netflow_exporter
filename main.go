@@ -128,7 +128,7 @@ func (c *netflowCollector) processReader(udpSock *net.UDPConn) {
 
 					}
 					if (len(counts) > 0) && (len(labels) > 0) {
-						labels["From"] = srcAddress.IP.String()
+						labels["agent"] = srcAddress.IP.String()
 						labels["TemplateID"] = fmt.Sprintf("%d",record.TemplateID)
 						labels["NetflowVersion"] = "9"
 
@@ -208,9 +208,9 @@ func (c *netflowCollector) Collect(ch chan<- prometheus.Metric) {
 		for key, value := range sample.Counts {
             desc :=""
 			if sample.Labels["TemplateID"] != "" {
-				desc = fmt.Sprintf("netflow_%s_TemplateID%s_%s", sample.Labels["From"], sample.Labels["TemplateID"], key)
+				desc = fmt.Sprintf("netflow_%s_TemplateID%s_%s", sample.Labels["agent"], sample.Labels["TemplateID"], key)
 			} else {
-				desc = fmt.Sprintf("netflow_%s_%s", sample.Labels["From"], key)
+				desc = fmt.Sprintf("netflow_%s_%s", sample.Labels["agent"], key)
 			}
             desc = strings.Replace(desc,".","",-1)
             // log.Infoln(desc)
